@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: terrain-service
+  namespace: passover
+  labels:
+    app: terrain-service
+    component: game-logic
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: terrain-service
+  template:
+    metadata:
+      labels:
+        app: terrain-service
+        component: game-logic
+        version: v1
+    spec:
+      containers:
+      - name: terrain-service
+        image: stealthymcstelath/exodus-rush-terrain-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8082
+          name: http
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "8082"
+        - name: SEA_STATE_SERVICE_URL
+          value: "http://sea-state-service:8080"
+        - name: REDIS_HOST
+          value: "redis-cache"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: CACHE_TTL
+          value: "300"
+        - name: LOG_LEVEL
+          value: "INFO"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8082
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8082
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: terrain-service-config
+  namespace: passover
+data:
+  CACHE_TTL: "300"
+  LOG_LEVEL: "INFO"

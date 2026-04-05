@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: terrain-service
+  namespace: passover
+  labels:
+    app: terrain-service
+    component: game-logic
+spec:
+  type: ClusterIP
+  selector:
+    app: terrain-service
+  ports:
+  - name: http
+    port: 8082
+    targetPort: 8082
+    protocol: TCP
+  sessionAffinity: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: terrain-service-headless
+  namespace: passover
+  labels:
+    app: terrain-service
+    component: game-logic
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: terrain-service
+  ports:
+  - name: http
+    port: 8082
+    targetPort: 8082
+    protocol: TCP
